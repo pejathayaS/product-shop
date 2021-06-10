@@ -1,67 +1,92 @@
 import express from 'express';
-import { v4 as uuidv4 } from 'uuid'; 
 const router = express.Router();
+import mongodb from 'mongodb';
+const MongoClient = mongodb.MongoClient;
 
-let products = [
-    {
-        id: "ring",
-        price: 10000,
-        quantity: 1,
-        name: "Fredo"
-    },
+const url = 'mongodb://127.0.0.1:27017/productDB';
+const dbName = 'productDB';
 
-    {
-        id: "dow",
-        price: 1000,
-        quantity: 1,
-        name: "sam"
+//connection test
+MongoClient.connect(url, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+}, (err, client) => {
+    if (err) {
+        return console.log(err);
     }
-]
+    const db = client.db('productDB');
+    db.collection('Product',function(err,collection){
+        if(err) console.log(err);
+    });
+    console.log(`MongoDB Connection successfull: ${url}`);
+});
 
+//product get all operation
 router.get('/', (req, resp) => {
-    resp.send(products);
+    MongoClient.connect(url, (err,client) => {
+        if(err) return console.log(err);
+
+        const db = client.db(dbName);
+        db.collection('Product',(err,collection)=>{
+            if(err) console.log(err);
+            collection.find().toArray(function(err, items) {
+                if(err) throw err;    
+                resp.send(items);   
+            });
+        });
+    });
 }
 );
 
-router.post('/',(req,resp)=> {
-   const product = req.body;
-   products.push(product);
-
-    resp.send('Product with the name ${product.id} added tp the database');
+//product add operation
+router.post('/', (req, resp) => {
+    const product = req.body;
+    MongoClient.connect(url,(error,client)=>{
+        client.db(dbName).collection('Product',(err,collection)=> {
+            if(err) console.log(err);
+            collection.insertOne(product).then(res => resp.send(`Product with the name ${product._id} added to the database`));
+        })
+    })
 });
 
-router.get('/:id',(req,resp)=> {
-    const {id} = req.params;
+//product get by :id operation
+router.get('/:id', (req, resp) => {
+    const { id } = req.params;
 
-    console.log(id);
-    resp.send(products.find(product=> product.id === id));
+    MongoClient.connect(url, (err,client) => {
+        if(err) return console.log(err);
+
+        const db = client.db(dbName);
+        db.collection('Product',(err,collection)=>{
+            if(err) console.log(err);
+           collection.findOne({'_id':id}).then((p)=> resp.send(p));
+        });
+    });
 });
 
-router.delete('/:id', (req,resp)=> {
-    const {id} = req.params;
-    products =  products.filter((product) => product.id !== id);
+//product delete by :id operation
+router.delete('/:id', (req, resp) => {
+    const { id } = req.params;
 
-    resp.send(products);
+    MongoClient.connect(url,(error,client)=>{
+        client.db(dbName).collection('Product',(err,collection)=>{
+            collection.deleteOne({'_id':id}).then(p=> resp.send(`Product with the id ${id} is deleted from the database`));
+        })
+    });
 });
 
-router.patch('/:id', (req,resp) => {
-    const {id} = req.params;
-
-    const {price,quantity,name} = req.body;
-
-    const productToUpdate = products.find((prod) => prod.id === id);
-
-    console.log(productToUpdate);
-
-    if(price) {
-        productToUpdate.price = price;
-    }
-    if(quantity) {
-        productToUpdate.quantity = quantity;
-    }
-    if(name) {
-        productToUpdate.name = name;
-    }
+//product replace by :id operation
+router.patch('/:id', (req, resp) => {
+    const product = req.body;
+    const { id } = req.params;
+    MongoClient.connect(url,(error,client)=>{
+        client.db(dbName).collection('Product',(err,collection)=>{
+            collection.replaceOne({'_id':id},product,(err,result)=>{
+                if(err) console.log(err);
+                resp.send(`Product with the Id ${product._id} replaced to the database`)
+            })
+        })
+    });
 });
 
 export default router;
