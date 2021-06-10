@@ -3,10 +3,14 @@ import bodyParser from 'body-parser';
 
 import productsRoutes from './routes/products.js'
 
+const url = 'mongodb://127.0.0.1:27017/productDB';
+
 const app = express();
+
 const PORT = 8084;
 
 app.use(express.json());
+
 app.use('/products', productsRoutes);
 
 app.get('/',(req,resp)=> { 
