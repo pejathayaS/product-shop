@@ -1,11 +1,11 @@
 {
-    "id":"ring",
+    "_id":"ring",
     "price":10000,
     "quantity":1,
     "name":"Fredo"
 },
 {
-    "id":"dow",
+    "_id":"dow",
     "price":1000,
     "quantity":1,
     "name":"sam"
