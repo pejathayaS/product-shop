@@ -1,5 +1,9 @@
-# product-shop
+# A cool product-shop
 A brief look into the deisgn and implementation of Product-shop
+An end to end application developed using angular front end and backed is developed in two flavours Node.js express and java spring.
+
+Also integrated kafka downstream service to handle third party integration logic
+
 
 **product-shop-ui** - An angular web application which provides GUI to perform CRUD operations on the product. 
 
